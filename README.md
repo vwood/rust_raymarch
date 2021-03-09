@@ -2,6 +2,6 @@
 
 Mostly a tiny proof of concept of both SDF raymarching and Rust
 
-![Example render](https://github.com/vwood/rust_raymarch/simple.png)
+![Example render](simple.png?raw=true)
 
-![Example render of mandlebulb](https://github.com/vwood/rust_raymarch/mandlebulb.png)
+![Example render of mandlebulb](mandlebulb.png?raw=true)
