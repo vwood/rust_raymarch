@@ -17,11 +17,11 @@ impl Vec3 {
     }
 
     pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
-        Vec3 { x: x, y: y, z: z }
+        Vec3 { x, y, z }
     }
 
     pub fn length(self) -> f32 {
-        return ((self.x * self.x) + (self.y * self.y) + (self.z * self.z)).sqrt();
+        ((self.x * self.x) + (self.y * self.y) + (self.z * self.z)).sqrt()
     }
 
     pub fn normalize(self) -> Vec3 {
@@ -29,15 +29,15 @@ impl Vec3 {
     }
 
     pub fn dot(self: &Vec3, b: &Vec3) -> f32 {
-        return self.x * b.x + self.y * b.y + self.z * b.z;
+        self.x * b.x + self.y * b.y + self.z * b.z
     }
 
     pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
-        return Vec3 {
+        Vec3 {
             x: a.y * b.z - a.z * b.y,
             y: a.z * b.x - a.x * b.z,
             z: a.x * b.y - a.y * b.x,
-        };
+        }
     }
 }
 
@@ -83,23 +83,27 @@ vec3_operation!(Mul, mul, *);
 vec3_operation!(Add, add, +);
 vec3_operation!(Sub, sub, -);
 
+#[allow(dead_code)]
 pub fn sphere_sdf(p: Vec3) -> f32 {
-    return (p - Vec3::new(0.0, 0.0, 3.0)).length() - 2.0;
+    (p - Vec3::new(0.0, 0.0, 3.0)).length() - 2.0
 }
 
+#[allow(dead_code)]
 pub fn torus_sdf(p: Vec3, dia: f32, thickness: f32) -> f32 {
-    return (((p.x.powf(2.0) + p.z.powf(2.0)).sqrt() - dia).powf(2.0) + p.y.powf(2.0)).sqrt()
-        - thickness;
+    (((p.x.powf(2.0) + p.z.powf(2.0)).sqrt() - dia).powf(2.0) + p.y.powf(2.0)).sqrt() - thickness
 }
 
+#[allow(dead_code)]
 pub fn plane_sdf(p: Vec3) -> f32 {
-    return p.y + 2.0;
+    p.y + 2.0
 }
 
+#[allow(dead_code)]
 pub fn plane_sdf_2(p: Vec3, plane: Vec3, dist: f32) -> f32 {
-    return p.dot(&plane) - dist;
+    p.dot(&plane) - dist
 }
 
+#[allow(dead_code)]
 pub fn mandlebulb_sdf(p: Vec3, iterations: u32, bailout: f32, power: f32) -> f32 {
     let mut z = p;
     let mut dr = 1.0;
@@ -131,7 +135,7 @@ pub fn mandlebulb_sdf(p: Vec3, iterations: u32, bailout: f32, power: f32) -> f32
             ) + p;
     }
 
-    return 0.5 * r.log(2.0) * r / dr;
+    0.5 * r.log(2.0) * r / dr
 }
 
 pub fn mandlebulb_sdf_itercount(p: Vec3, iterations: u32, bailout: f32, power: f32) -> f32 {
@@ -165,42 +169,43 @@ pub fn mandlebulb_sdf_itercount(p: Vec3, iterations: u32, bailout: f32, power: f
             ) + p;
     }
 
-    return 1.0;
+    1.0
 }
 
 pub fn gyroid_sdf(p: Vec3, scale: f32, bias: f32) -> f32 {
     let p = p * scale;
 
-    return (Vec3::new(p.x.sin(), p.y.sin(), p.z.sin())
+    (Vec3::new(p.x.sin(), p.y.sin(), p.z.sin())
         .dot(&(Vec3::new(p.z.cos(), p.x.cos(), p.y.cos()) - bias))
         .abs()
         / scale
         - 0.2)
-        * 0.8;
+        * 0.8
 }
 
 pub fn example_scene_sdf(p: Vec3) -> f32 {
-    return gyroid_sdf(p, 5.0, 1.5).max(plane_sdf_2(p, Vec3::new(0.5, 0.5, -0.5), -4.0));
+    gyroid_sdf(p, 5.0, 1.5).max(plane_sdf_2(p, Vec3::new(0.5, 0.5, -0.5), -4.0))
 
     /*
-    return mandlebulb_sdf(p, 100, 10.0, 4.0);
-     */
+    mandlebulb_sdf(p, 100, 10.0, 4.0)
+    */
 
     /*
-    return torus_sdf(p - Vec3::new(0.0, 2.5, 0.0), 1.5, 0.4)
+    torus_sdf(p - Vec3::new(0.0, 2.5, 0.0), 1.5, 0.4)
     .min(plane_sdf(p))
-    .min(sphere_sdf(p));
+    .min(sphere_sdf(p))
      */
 
     /*
-    return sphere_sdf(p).min(plane_sdf(p));
-     */
+    sphere_sdf(p).min(plane_sdf(p))
+    */
 }
 
 /*
- Warning: This is *slow*
- only do it when we hit something
+Warning: This is *slow*
+only do it when we hit something
 */
+#[allow(dead_code)]
 fn calc_normal(sdf: &dyn Fn(Vec3) -> f32, p: Vec3) -> Vec3 {
     let eps = 0.001;
     let eps_x = Vec3::new(eps, 0.0, 0.0);
@@ -212,7 +217,8 @@ fn calc_normal(sdf: &dyn Fn(Vec3) -> f32, p: Vec3) -> Vec3 {
         sdf(p + eps_y) - sdf(p - eps_y),
         sdf(p + eps_z) - sdf(p - eps_z),
     );
-    return normal.normalize();
+
+    normal.normalize()
 }
 
 /*
@@ -232,7 +238,8 @@ fn calc_normal_eff(sdf: &dyn Fn(Vec3) -> f32, p: Vec3) -> Vec3 {
         sdf_p - sdf(p - eps_y),
         sdf_p - sdf(p - eps_z),
     );
-    return normal.normalize();
+
+    normal.normalize()
 }
 
 pub fn march(
@@ -260,12 +267,12 @@ pub fn march(
 
     let normal = calc_normal_eff(scene_sdf, start + dist * view_dir);
 
-    let light = (normal.x + normal.y + normal.z).abs() / 3.0;
+    let _light = (normal.x + normal.y + normal.z).abs() / 3.0;
 
-    return (
+    (
         1.0 - (dist / max_dist).min(1.0),
         (steps as f32) / (max_steps as f32),
         iter,
         // (1.0 - (2.0 / -radius).exp()) * light,
-    );
+    )
 }
