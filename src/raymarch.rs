@@ -96,10 +96,9 @@ pub fn plane_sdf(p: Vec3) -> f32 {
     return p.y + 2.0;
 }
 
-pub fn plane_sdf_2(p: Vec3, plane: Vec3, dist:f32) -> f32 {
+pub fn plane_sdf_2(p: Vec3, plane: Vec3, dist: f32) -> f32 {
     return p.dot(&plane) - dist;
 }
-
 
 pub fn mandlebulb_sdf(p: Vec3, iterations: u32, bailout: f32, power: f32) -> f32 {
     let mut z = p;
@@ -169,27 +168,30 @@ pub fn mandlebulb_sdf_itercount(p: Vec3, iterations: u32, bailout: f32, power: f
     return 1.0;
 }
 
-pub fn gyroid_sdf(p: Vec3, scale: f32, bias:f32) -> f32 {
+pub fn gyroid_sdf(p: Vec3, scale: f32, bias: f32) -> f32 {
     let p = p * scale;
-    
+
     return (Vec3::new(p.x.sin(), p.y.sin(), p.z.sin())
-            .dot(&(Vec3::new(p.z.cos(), p.x.cos(), p.y.cos()) - bias)).abs() / scale - 0.2) * 0.8;
+        .dot(&(Vec3::new(p.z.cos(), p.x.cos(), p.y.cos()) - bias))
+        .abs()
+        / scale
+        - 0.2)
+        * 0.8;
 }
 
 pub fn example_scene_sdf(p: Vec3) -> f32 {
-    return gyroid_sdf(p, 5.0, 1.5)
-        .max(plane_sdf_2(p, Vec3::new(0.5, 0.5, -0.5), -4.0));
+    return gyroid_sdf(p, 5.0, 1.5).max(plane_sdf_2(p, Vec3::new(0.5, 0.5, -0.5), -4.0));
 
     /*
     return mandlebulb_sdf(p, 100, 10.0, 4.0);
      */
-    
+
     /*
     return torus_sdf(p - Vec3::new(0.0, 2.5, 0.0), 1.5, 0.4)
     .min(plane_sdf(p))
     .min(sphere_sdf(p));
      */
-    
+
     /*
     return sphere_sdf(p).min(plane_sdf(p));
      */
@@ -214,7 +216,7 @@ fn calc_normal(sdf: &dyn Fn(Vec3) -> f32, p: Vec3) -> Vec3 {
 }
 
 /*
- One sided version is faster, 
+ One sided version is faster,
  twice as much error
 */
 fn calc_normal_eff(sdf: &dyn Fn(Vec3) -> f32, p: Vec3) -> Vec3 {
