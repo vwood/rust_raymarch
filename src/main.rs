@@ -33,16 +33,20 @@ fn main() {
 
     let result = process_file(input_filename);
 
-    match result {
+    let value = match result {
         Ok(v) => {
             println!("Contents: {}", v);
+            v
         }
 
         Err(e) => {
             println!("Error: {}", e);
+            return;
         }
-    }
+    };
 
+    let sdf = value["scene"].as_str().unwrap_or("");
+    
     println!("Ouput: {}", output_filename);
 
     let width = 800;
@@ -58,7 +62,13 @@ fn main() {
         let dir = raymarch::Vec3::new(-0.2 - y_pos, x_pos, 1.0).normalize();
 
         let (r, g, b) = raymarch::march(
-            &raymarch::example_scene_sdf,
+            match sdf {
+                "torus" => &raymarch::torus_scene_sdf,
+                "mandlebulb" => &raymarch::mandlebulb_scene_sdf,
+                "gyroid" => &raymarch::gyroid_scene_sdf,
+                "example" => &raymarch::example_scene_sdf,
+                _ => &raymarch::example_scene_sdf,
+            },
             raymarch::Vec3::new(0.5, 0.5, -2.0),
             dir,
             100,
