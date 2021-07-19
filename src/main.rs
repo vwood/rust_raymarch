@@ -2,13 +2,24 @@ extern crate image;
 
 use image::ImageBuffer;
 use std::env;
+// use std::error::Error;
+use std::fs;
+use serde_json::{Value};
 
 mod raymarch;
+
+fn process_file(input_filename: &str) -> Result<Value, serde_json::Error> {
+    let data = fs::read_to_string(input_filename).expect("Error reading input file");
+
+    let v: Value = serde_json::from_str(&data)?;
+
+    Ok(v)
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let mut input_filename = "default.txt";
+    let mut input_filename = "default.json";
     let mut output_filename = "default.png";
 
     if args.len() > 1
@@ -20,8 +31,20 @@ fn main() {
         }
     }
 
-    println!("Arguments: {:?}", args);
     println!("Input: {}", input_filename);
+
+    let result = process_file(input_filename);
+
+    match result {
+        Ok(v) => {
+            println!("Contents: {}", v);
+        }
+        
+        Err(e) => {
+            println!("Error: {}", e);
+        }
+    }
+    
     println!("Ouput: {}", output_filename);
 
     let width = 800;
