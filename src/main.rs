@@ -2,7 +2,7 @@ extern crate image;
 
 use image::ImageBuffer;
 use std::env;
-// use std::error::Error;
+use std::error::Error;
 use serde_json::Value;
 use std::fs;
 
@@ -10,10 +10,10 @@ mod vector;
 mod raymarch;
 mod scene;
 
-fn process_file(input_filename: &str) -> Result<Value, serde_json::Error> {
-    let data = fs::read_to_string(input_filename).expect("Error reading input file");
+fn process_file(input_filename: &str) -> Result<Value, Box<dyn Error>> {
+    let data = fs::read_to_string(input_filename)?;
 
-    let v: Value = serde_json::from_str(&data)?;
+    let v = serde_json::from_str(&data)?;
 
     Ok(v)
 }
@@ -36,13 +36,9 @@ fn main() {
     let result = process_file(input_filename);
 
     let value = match result {
-        Ok(v) => {
-            println!("Contents: {}", v);
-            v
-        }
-
-        Err(e) => {
-            println!("Error: {}", e);
+        Ok(v) => v,
+        Err(error) => {
+            println!("Error: {}", error);
             return;
         }
     };
