@@ -6,7 +6,9 @@ use std::env;
 use serde_json::Value;
 use std::fs;
 
+mod vector;
 mod raymarch;
+mod scene;
 
 fn process_file(input_filename: &str) -> Result<Value, serde_json::Error> {
     let data = fs::read_to_string(input_filename).expect("Error reading input file");
@@ -46,7 +48,7 @@ fn main() {
     };
 
     let sdf = value["scene"].as_str().unwrap_or("");
-    
+
     println!("Ouput: {}", output_filename);
 
     let width = 800;
@@ -59,17 +61,17 @@ fn main() {
         let x_pos = ((x as f32) / (width as f32) - 0.5) * 0.8;
         let y_pos = (0.5 - (y as f32) / (height as f32)) * 0.6;
 
-        let dir = raymarch::Vec3::new(-0.2 - y_pos, x_pos, 1.0).normalize();
+        let dir = vector::Vec3::new(-0.2 - y_pos, x_pos, 1.0).normalize();
 
         let (r, g, b) = raymarch::march(
             match sdf {
-                "torus" => &raymarch::torus_scene_sdf,
-                "mandlebulb" => &raymarch::mandlebulb_scene_sdf,
-                "gyroid" => &raymarch::gyroid_scene_sdf,
-                "example" => &raymarch::example_scene_sdf,
-                _ => &raymarch::example_scene_sdf,
+                "torus" => &scene::torus_scene_sdf,
+                "mandlebulb" => &scene::mandlebulb_scene_sdf,
+                "gyroid" => &scene::gyroid_scene_sdf,
+                "example" => &scene::example_scene_sdf,
+                _ => &scene::example_scene_sdf,
             },
-            raymarch::Vec3::new(0.5, 0.5, -2.0),
+            vector::Vec3::new(0.5, 0.5, -2.0),
             dir,
             100,
             255.0,

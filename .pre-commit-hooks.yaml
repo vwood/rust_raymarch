@@ -5,6 +5,7 @@
   language: system
   types: [rust]
   args: ["--"]
+  files: *.rs
 - id: clippy
   name: clippy
   description: Lint rust sources
@@ -12,4 +13,5 @@
   language: system
   args: ["--", "-D", "warnings"]
   types: [rust]
+  files: *.rs
   pass_filenames: false
