@@ -1,5 +1,5 @@
-use crate::vector::Vec3;
 use crate::raymarch::*;
+use crate::vector::Vec3;
 
 pub fn mandlebulb_scene_sdf(p: Vec3) -> f32 {
     mandlebulb_sdf(p, 100, 10.0, 4.0)

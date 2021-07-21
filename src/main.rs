@@ -1,14 +1,14 @@
 extern crate image;
 
 use image::ImageBuffer;
+use serde_json::Value;
 use std::env;
 use std::error::Error;
-use serde_json::Value;
 use std::fs;
 
-mod vector;
 mod raymarch;
 mod scene;
+mod vector;
 
 fn process_file(input_filename: &str) -> Result<Value, Box<dyn Error>> {
     let data = fs::read_to_string(input_filename)?;
