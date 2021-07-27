@@ -1,1 +1,5 @@
-{"scene": "mandlebulb"}
+{
+    "sdf": "mandlebulb",
+    "width": 640,
+    "height": 480
+}

@@ -1,11 +1,11 @@
 #[macro_use]
 extern crate clap;
-
 extern crate image;
+extern crate serde;
 
 use image::ImageBuffer;
 use rayon::prelude::*;
-use serde_json::Value;
+// use serde_json::Value;
 use std::error::Error;
 use std::fs;
 use std::time::SystemTime;
@@ -14,7 +14,7 @@ mod raymarch;
 mod scene;
 mod vector;
 
-fn process_file(input_filename: &str) -> Result<Value, Box<dyn Error>> {
+fn process_file(input_filename: &str) -> Result<scene::Scene, Box<dyn Error>> {
     let data = fs::read_to_string(input_filename)?;
 
     let v = serde_json::from_str(&data)?;
@@ -109,10 +109,10 @@ fn main() {
         }
     };
 
-    let sdf = value["scene"].as_str().unwrap_or("");
+    let sdf = value.sdf;
 
-    let width = 800;
-    let height = 600;
+    let width = value.width;
+    let height = value.height;
 
     let start = SystemTime::now();
     let img;
@@ -124,10 +124,10 @@ fn main() {
             .unwrap();
         println!("Using {} threads", thread_count);
 
-        img = parallel_march(width, height, sdf);
+        img = parallel_march(width, height, &sdf);
     } else {
         println!("Threads disabled");
-        img = march(width, height, sdf);
+        img = march(width, height, &sdf);
     }
     let end = SystemTime::now();
 
