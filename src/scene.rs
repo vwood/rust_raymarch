@@ -29,6 +29,10 @@ pub fn mandlebulb_scene_sdf(p: Vec3) -> f32 {
     mandlebulb_sdf(p, 100, 10.0, 4.0)
 }
 
+pub fn mandlebulb_scene_sdf_iter(p: Vec3) -> f32 {
+    mandlebulb_sdf_iter(p, 100, 10.0, 4.0)
+}
+
 pub fn torus_scene_sdf(p: Vec3) -> f32 {
     torus_sdf(p - Vec3::new(0.0, 2.5, 0.0), 1.5, 0.4)
         .min(plane_sdf(p, Vec3::new(0.0, 1.0, 0.0), 0.0))

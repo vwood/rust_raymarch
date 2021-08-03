@@ -50,15 +50,18 @@ pub fn mandlebulb_sdf(p: Vec3, iterations: u32, bailout: f32, power: f32) -> f32
     0.5 * r.log(2.0) * r / dr
 }
 
-pub fn mandlebulb_sdf_itercount(p: Vec3, iterations: u32, bailout: f32, power: f32) -> f32 {
+#[allow(dead_code)]
+pub fn mandlebulb_sdf_iter(p: Vec3, iterations: u32, bailout: f32, power: f32) -> f32 {
     let mut z = p;
     let mut dr = 1.0;
     let mut r;
 
+    let mut steps = iterations;
     for i in 1..iterations {
         r = z.length();
         if r > bailout {
-            return (i as f32) / (iterations as f32);
+            steps = i;
+            break;
         }
 
         // convert to polar coordinates
@@ -81,7 +84,7 @@ pub fn mandlebulb_sdf_itercount(p: Vec3, iterations: u32, bailout: f32, power: f
             ) + p;
     }
 
-    1.0
+    (steps as f32) / (iterations as f32)
 }
 
 pub fn gyroid_sdf(p: Vec3, scale: f32, bias: f32) -> f32 {
@@ -138,11 +141,13 @@ fn calc_normal_eff(sdf: &dyn Fn(Vec3) -> f32, p: Vec3) -> Vec3 {
 
 pub fn march(
     scene_sdf: &dyn Fn(Vec3) -> f32,
+    lighting_fn: &dyn Fn(Vec3, Vec3, f32, f32, f32, f32, f32) -> (f32, f32, f32),
     start: Vec3,
     view_dir: Vec3,
     max_steps: u32,
     max_dist: f32,
     epsilon: f32,
+    extra_sdf: Option<&dyn Fn(Vec3) -> f32>,
 ) -> (f32, f32, f32) {
     let mut dist = 0.0;
 
@@ -157,16 +162,24 @@ pub fn march(
         }
     }
 
-    let iter = mandlebulb_sdf_itercount(start + dist * view_dir, 100, 10.0, 4.0);
+    let end_pos = start + dist * view_dir;
 
-    let normal = calc_normal_eff(scene_sdf, start + dist * view_dir);
+    let extra = match extra_sdf {
+        Some(sdf) => sdf(end_pos),
+        None => 1.0,
+    };
 
-    let _light = (normal.x + normal.y + normal.z).abs() / 3.0;
+    let normal = calc_normal_eff(scene_sdf, end_pos);
 
-    (
-        1.0 - (dist / max_dist).min(1.0),
+    let light = (normal.x + normal.y + normal.z).abs() / 3.0;
+
+    lighting_fn(
+        end_pos,
+        normal,
+        dist / max_dist,
+        radius,
+        light,
+        extra,
         (steps as f32) / (max_steps as f32),
-        iter,
-        // (1.0 - (2.0 / -radius).exp()) * light,
     )
 }

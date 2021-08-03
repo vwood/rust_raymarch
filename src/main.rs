@@ -10,6 +10,7 @@ use std::error::Error;
 use std::fs;
 use std::time::SystemTime;
 
+mod lighting;
 mod raymarch;
 mod scene;
 mod vector;
@@ -36,11 +37,13 @@ fn march_pixel(x: u32, y: u32, width: u32, height: u32, scene: &str) -> (u8, u8,
             "example" => &scene::example_scene_sdf,
             _ => &scene::example_scene_sdf,
         },
+        &lighting::simple_lighting,
         vector::Vec3::new(0.5, 0.5, -2.0),
         dir,
         100,
         255.0,
         0.001,
+        Some(&scene::mandlebulb_scene_sdf_iter),
     );
 
     let r = (255.0 * r) as u8;
