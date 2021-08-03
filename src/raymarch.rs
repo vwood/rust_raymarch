@@ -11,12 +11,7 @@ pub fn torus_sdf(p: Vec3, dia: f32, thickness: f32) -> f32 {
 }
 
 #[allow(dead_code)]
-pub fn plane_sdf(p: Vec3) -> f32 {
-    p.y + 2.0
-}
-
-#[allow(dead_code)]
-pub fn plane_sdf_2(p: Vec3, plane: Vec3, dist: f32) -> f32 {
+pub fn plane_sdf(p: Vec3, plane: Vec3, dist: f32) -> f32 {
     p.dot(&plane) - dist
 }
 
