@@ -23,21 +23,27 @@ fn process_file(input_filename: &str) -> Result<scene::Scene, Box<dyn Error>> {
     Ok(v)
 }
 
-fn march_pixel(x: u32, y: u32, width: u32, height: u32, scene: &str) -> (u8, u8, u8) {
+fn march_pixel(x: u32, y: u32, scene: &scene::Scene) -> (u8, u8, u8) {
+    let width = scene.width;
+    let height = scene.height;
+
     let x_pos = ((x as f32) / (width as f32) - 0.5) * 0.8;
     let y_pos = (0.5 - (y as f32) / (height as f32)) * 0.6;
 
     let dir = vector::Vec3::new(-0.2 - y_pos, x_pos, 1.0).normalize();
 
     let (r, g, b) = raymarch::march(
-        match scene {
+        match scene.sdf.as_str() {
             "torus" => &scene::torus_scene_sdf,
             "mandlebulb" => &scene::mandlebulb_scene_sdf,
             "gyroid" => &scene::gyroid_scene_sdf,
             "example" => &scene::example_scene_sdf,
             _ => &scene::example_scene_sdf,
         },
-        &lighting::simple_lighting,
+        match scene.lighting.as_str() {
+            "lighting2" => &lighting::simple_lighting_2,
+            _ => &lighting::simple_lighting,
+        },
         vector::Vec3::new(0.5, 0.5, -2.0),
         dir,
         100,
@@ -53,14 +59,17 @@ fn march_pixel(x: u32, y: u32, width: u32, height: u32, scene: &str) -> (u8, u8,
     (r, g, b)
 }
 
-fn parallel_march(width: u32, height: u32, scene: &str) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+fn parallel_march(scene: &scene::Scene) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+    let width = scene.width;
+    let height = scene.height;
+
     let pixels: Vec<u8> = (0..width * height)
         .into_par_iter()
         .map(|i| {
-            let x = i % width;
-            let y = i / width;
+            let x = i % scene.width;
+            let y = i / scene.width;
 
-            let (r, g, b) = march_pixel(x, y, width, height, scene);
+            let (r, g, b) = march_pixel(x, y, scene);
             vec![r, g, b]
         })
         .flatten()
@@ -71,11 +80,11 @@ fn parallel_march(width: u32, height: u32, scene: &str) -> ImageBuffer<image::Rg
     ImageBuffer::<image::Rgb<u8>, _>::from_vec(width, height, pixels).unwrap()
 }
 
-fn march(width: u32, height: u32, scene: &str) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
-    let mut img = ImageBuffer::new(width, height);
+fn march(scene: &scene::Scene) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+    let mut img = ImageBuffer::new(scene.width, scene.height);
 
     for (x, y, pixel) in img.enumerate_pixels_mut() {
-        let (r, g, b) = march_pixel(x, y, width, height, scene);
+        let (r, g, b) = march_pixel(x, y, scene);
         *pixel = image::Rgb([r, g, b]);
     }
 
@@ -104,18 +113,13 @@ fn main() {
 
     let result = process_file(input_filename);
 
-    let value = match result {
+    let scene = match result {
         Ok(v) => v,
         Err(error) => {
             println!("Error: {}", error);
             return;
         }
     };
-
-    let sdf = value.sdf;
-
-    let width = value.width;
-    let height = value.height;
 
     let start = SystemTime::now();
     let img;
@@ -127,10 +131,10 @@ fn main() {
             .unwrap();
         println!("Using {} threads", thread_count);
 
-        img = parallel_march(width, height, &sdf);
+        img = parallel_march(&scene);
     } else {
         println!("Threads disabled");
-        img = march(width, height, &sdf);
+        img = march(&scene);
     }
     let end = SystemTime::now();
 

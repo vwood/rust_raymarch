@@ -11,6 +11,7 @@ pub struct Scene {
     pub height: u32,
     pub camera_pos: (f32, f32, f32),
     pub look_at: (f32, f32, f32),
+    pub lighting: String,
 }
 
 impl Default for Scene {
@@ -21,6 +22,7 @@ impl Default for Scene {
             height: 480,
             camera_pos: (0.0, 0.0, -5.0),
             look_at: (0.0, 0.0, 0.0),
+            lighting: "default".to_string(),
         }
     }
 }
