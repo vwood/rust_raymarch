@@ -41,6 +41,12 @@ impl Vec3 {
     }
 }
 
+impl From<(f32, f32, f32)> for Vec3 {
+    fn from((x, y, z): (f32, f32, f32)) -> Self {
+        Vec3 { x, y, z }
+    }
+}
+
 macro_rules! vec3_operation {
     ($operation:ident, $op_fn:ident, $op: tt) => {
         impl $operation<f32> for Vec3 {
@@ -57,6 +63,17 @@ macro_rules! vec3_operation {
         impl $operation<Vec3> for f32 {
             type Output = Vec3;
             fn $op_fn(self, other: Vec3) -> Vec3 {
+                Vec3 {
+                    x: self $op other.x,
+                    y: self $op other.y,
+                    z: self $op other.z,
+                }
+            }
+        }
+
+        impl $operation<&Vec3> for f32 {
+            type Output = Vec3;
+            fn $op_fn(self, other: &Vec3) -> Vec3 {
                 Vec3 {
                     x: self $op other.x,
                     y: self $op other.y,

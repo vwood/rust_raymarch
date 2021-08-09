@@ -5,7 +5,7 @@ extern crate serde;
 
 use image::ImageBuffer;
 use rayon::prelude::*;
-// use serde_json::Value;
+
 use std::error::Error;
 use std::fs;
 use std::time::SystemTime;
@@ -15,7 +15,7 @@ mod raymarch;
 mod scene;
 mod vector;
 
-fn process_file(input_filename: &str) -> Result<scene::Scene, Box<dyn Error>> {
+fn process_file(input_filename: &str) -> Result<scene::SceneDescription, Box<dyn Error>> {
     let data = fs::read_to_string(input_filename)?;
 
     let v = serde_json::from_str(&data)?;
@@ -23,6 +23,7 @@ fn process_file(input_filename: &str) -> Result<scene::Scene, Box<dyn Error>> {
     Ok(v)
 }
 
+#[allow(clippy::many_single_char_names)]
 fn march_pixel(x: u32, y: u32, scene: &scene::Scene) -> (u8, u8, u8) {
     let width = scene.width;
     let height = scene.height;
@@ -32,25 +33,7 @@ fn march_pixel(x: u32, y: u32, scene: &scene::Scene) -> (u8, u8, u8) {
 
     let dir = vector::Vec3::new(-0.2 - y_pos, x_pos, 1.0).normalize();
 
-    let (r, g, b) = raymarch::march(
-        match scene.sdf.as_str() {
-            "torus" => &scene::torus_scene_sdf,
-            "mandlebulb" => &scene::mandlebulb_scene_sdf,
-            "gyroid" => &scene::gyroid_scene_sdf,
-            "example" => &scene::example_scene_sdf,
-            _ => &scene::example_scene_sdf,
-        },
-        match scene.lighting.as_str() {
-            "lighting2" => &lighting::simple_lighting_2,
-            _ => &lighting::simple_lighting,
-        },
-        vector::Vec3::new(0.5, 0.5, -2.0),
-        dir,
-        100,
-        255.0,
-        0.001,
-        Some(&scene::mandlebulb_scene_sdf_iter),
-    );
+    let (r, g, b) = raymarch::march(&scene, &dir);
 
     let r = (255.0 * r) as u8;
     let g = (255.0 * g) as u8;
@@ -59,6 +42,7 @@ fn march_pixel(x: u32, y: u32, scene: &scene::Scene) -> (u8, u8, u8) {
     (r, g, b)
 }
 
+#[allow(clippy::many_single_char_names)]
 fn parallel_march(scene: &scene::Scene) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
     let width = scene.width;
     let height = scene.height;
@@ -80,6 +64,7 @@ fn parallel_march(scene: &scene::Scene) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> 
     ImageBuffer::<image::Rgb<u8>, _>::from_vec(width, height, pixels).unwrap()
 }
 
+#[allow(clippy::many_single_char_names)]
 fn march(scene: &scene::Scene) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
     let mut img = ImageBuffer::new(scene.width, scene.height);
 
@@ -113,13 +98,15 @@ fn main() {
 
     let result = process_file(input_filename);
 
-    let scene = match result {
+    let description = match result {
         Ok(v) => v,
         Err(error) => {
             println!("Error: {}", error);
             return;
         }
     };
+
+    let scene = scene::Scene::from(description);
 
     let start = SystemTime::now();
     let img;

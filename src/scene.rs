@@ -3,9 +3,12 @@ use crate::vector::Vec3;
 
 use serde::Deserialize;
 
+use crate::lighting;
+use crate::vector;
+
 #[derive(Deserialize)]
 #[serde(default)]
-pub struct Scene {
+pub struct SceneDescription {
     pub sdf: String,
     pub width: u32,
     pub height: u32,
@@ -14,15 +17,54 @@ pub struct Scene {
     pub lighting: String,
 }
 
-impl Default for Scene {
-    fn default() -> Scene {
-        Scene {
+impl Default for SceneDescription {
+    fn default() -> SceneDescription {
+        SceneDescription {
             sdf: "default".to_string(),
             width: 640,
             height: 480,
-            camera_pos: (0.0, 0.0, -5.0),
+            camera_pos: (0.5, 0.5, -2.0),
             look_at: (0.0, 0.0, 0.0),
             lighting: "default".to_string(),
+        }
+    }
+}
+
+/// Information needed to ray march
+pub struct Scene {
+    pub sdf: &'static (dyn Fn(Vec3) -> f32 + Sync),
+    pub lighting_fn:
+        &'static (dyn Fn(Vec3, Vec3, f32, f32, f32, f32, f32) -> (f32, f32, f32) + Sync),
+    pub width: u32,
+    pub height: u32,
+    pub start: Vec3,
+    pub max_steps: u32,
+    pub max_dist: f32,
+    pub epsilon: f32,
+    pub extra_sdf: Option<&'static (dyn Fn(Vec3) -> f32 + Sync)>,
+}
+
+impl From<SceneDescription> for Scene {
+    fn from(description: SceneDescription) -> Self {
+        Scene {
+            sdf: match description.sdf.as_str() {
+                "torus" => &torus_scene_sdf,
+                "mandlebulb" => &mandlebulb_scene_sdf,
+                "gyroid" => &gyroid_scene_sdf,
+                "example" => &example_scene_sdf,
+                _ => &example_scene_sdf,
+            },
+            lighting_fn: match description.lighting.as_str() {
+                "lighting2" => &lighting::simple_lighting_2,
+                _ => &lighting::simple_lighting,
+            },
+            width: description.width,
+            height: description.height,
+            start: vector::Vec3::from(description.camera_pos),
+            max_steps: 100,
+            max_dist: 255.0,
+            epsilon: 0.001,
+            extra_sdf: Some(&mandlebulb_scene_sdf_iter),
         }
     }
 }

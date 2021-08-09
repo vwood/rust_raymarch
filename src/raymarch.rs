@@ -1,3 +1,4 @@
+use crate::scene;
 use crate::vector::Vec3;
 
 #[allow(dead_code)]
@@ -139,47 +140,38 @@ fn calc_normal_eff(sdf: &dyn Fn(Vec3) -> f32, p: Vec3) -> Vec3 {
     normal.normalize()
 }
 
-pub fn march(
-    scene_sdf: &dyn Fn(Vec3) -> f32,
-    lighting_fn: &dyn Fn(Vec3, Vec3, f32, f32, f32, f32, f32) -> (f32, f32, f32),
-    start: Vec3,
-    view_dir: Vec3,
-    max_steps: u32,
-    max_dist: f32,
-    epsilon: f32,
-    extra_sdf: Option<&dyn Fn(Vec3) -> f32>,
-) -> (f32, f32, f32) {
+pub fn march(scene: &scene::Scene, view_dir: &Vec3) -> (f32, f32, f32) {
     let mut dist = 0.0;
 
-    let mut steps = max_steps;
+    let mut steps = scene.max_steps;
     let mut radius = 0.0;
-    for i in 1..max_steps {
+    for i in 1..scene.max_steps {
         dist += radius;
-        radius = scene_sdf(start + dist * view_dir);
-        if dist > max_dist || radius < epsilon {
+        radius = (scene.sdf)(scene.start + dist * view_dir);
+        if dist > scene.max_dist || radius < scene.epsilon {
             steps = i;
             break;
         }
     }
 
-    let end_pos = start + dist * view_dir;
+    let end_pos = scene.start + dist * view_dir;
 
-    let extra = match extra_sdf {
+    let extra = match scene.extra_sdf {
         Some(sdf) => sdf(end_pos),
         None => 1.0,
     };
 
-    let normal = calc_normal_eff(scene_sdf, end_pos);
+    let normal = calc_normal_eff(scene.sdf, end_pos);
 
     let light = (normal.x + normal.y + normal.z).abs() / 3.0;
 
-    lighting_fn(
+    (scene.lighting_fn)(
         end_pos,
         normal,
-        dist / max_dist,
+        dist / scene.max_dist,
         radius,
         light,
         extra,
-        (steps as f32) / (max_steps as f32),
+        (steps as f32) / (scene.max_steps as f32),
     )
 }
