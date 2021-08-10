@@ -101,7 +101,7 @@ fn main() {
     let description = match result {
         Ok(v) => v,
         Err(error) => {
-            println!("Error: {}", error);
+            eprintln!("Error: {}", error);
             return;
         }
     };
