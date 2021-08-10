@@ -33,8 +33,7 @@ impl Default for SceneDescription {
 /// Information needed to ray march
 pub struct Scene {
     pub sdf: &'static (dyn Fn(Vec3) -> f32 + Sync),
-    pub lighting_fn:
-        &'static (dyn Fn(Vec3, Vec3, f32, f32, f32, f32, f32) -> (f32, f32, f32) + Sync),
+    pub lighting_fn: &'static (dyn Fn(lighting::LightingInfo) -> (f32, f32, f32) + Sync),
     pub width: u32,
     pub height: u32,
     pub start: Vec3,

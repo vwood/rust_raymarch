@@ -1,3 +1,4 @@
+use crate::lighting;
 use crate::scene;
 use crate::vector::Vec3;
 
@@ -165,13 +166,13 @@ pub fn march(scene: &scene::Scene, view_dir: &Vec3) -> (f32, f32, f32) {
 
     let light = (normal.x + normal.y + normal.z).abs() / 3.0;
 
-    (scene.lighting_fn)(
+    (scene.lighting_fn)(lighting::LightingInfo {
         end_pos,
         normal,
-        dist / scene.max_dist,
-        radius,
+        ray_dist: dist / scene.max_dist,
+        obj_dist: radius,
         light,
         extra,
-        (steps as f32) / (scene.max_steps as f32),
-    )
+        steps: (steps as f32) / (scene.max_steps as f32),
+    })
 }
