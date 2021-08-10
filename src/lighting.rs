@@ -25,3 +25,11 @@ pub fn simple_lighting_2(info: LightingInfo) -> (f32, f32, f32) {
         (1.0 - (2.0 / -info.obj_dist).exp()) * info.light,
     )
 }
+
+pub fn simple_lighting_3(info: LightingInfo) -> (f32, f32, f32) {
+    (
+        info.normal.x * info.light * info.steps,
+        info.normal.y * info.light * info.steps,
+        info.normal.z * info.light * info.steps,
+    )
+}

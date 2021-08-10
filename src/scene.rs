@@ -1,11 +1,12 @@
-use crate::raymarch::*;
+// use crate::raymarch::*;
 use crate::vector::Vec3;
 
 use serde::Deserialize;
 
 use crate::lighting;
-use crate::vector;
+use crate::sdf::*;
 
+/// Scene description loaded from json
 #[derive(Deserialize)]
 #[serde(default)]
 pub struct SceneDescription {
@@ -37,6 +38,9 @@ pub struct Scene {
     pub width: u32,
     pub height: u32,
     pub start: Vec3,
+    pub direction: Vec3,
+    pub screen_x: Vec3,
+    pub screen_y: Vec3,
     pub max_steps: u32,
     pub max_dist: f32,
     pub epsilon: f32,
@@ -45,21 +49,40 @@ pub struct Scene {
 
 impl From<SceneDescription> for Scene {
     fn from(description: SceneDescription) -> Self {
+        let direction =
+            (Vec3::from(description.look_at) - Vec3::from(description.camera_pos)).normalize();
+
+        let screen_x;
+        let screen_y;
+        if direction.y > direction.x {
+            screen_y = direction.cross(&Vec3::new(-1.0, 0.0, 0.0)).normalize();
+            screen_x = direction.cross(&screen_y).normalize();
+        } else {
+            screen_x = direction.cross(&Vec3::new(0.0, -1.0, 0.0)).normalize();
+            screen_y = direction.cross(&screen_x).normalize();
+        }
+
         Scene {
             sdf: match description.sdf.as_str() {
                 "torus" => &torus_scene_sdf,
                 "mandlebulb" => &mandlebulb_scene_sdf,
                 "gyroid" => &gyroid_scene_sdf,
                 "example" => &example_scene_sdf,
+                "sphere_grid" => &sphere_grid_scene_sdf,
+                "fbm" => &fbm_scene_sdf,
                 _ => &example_scene_sdf,
             },
             lighting_fn: match description.lighting.as_str() {
                 "lighting2" => &lighting::simple_lighting_2,
+                "lighting3" => &lighting::simple_lighting_3,
                 _ => &lighting::simple_lighting,
             },
             width: description.width,
             height: description.height,
-            start: vector::Vec3::from(description.camera_pos),
+            start: Vec3::from(description.camera_pos),
+            direction: direction,
+            screen_x: screen_x,
+            screen_y: screen_y,
             max_steps: 100,
             max_dist: 255.0,
             epsilon: 0.001,
@@ -88,4 +111,16 @@ pub fn gyroid_scene_sdf(p: Vec3) -> f32 {
 
 pub fn example_scene_sdf(p: Vec3) -> f32 {
     sphere_sdf(p).min(plane_sdf(p, Vec3::new(0.0, 1.0, 0.0), 0.0))
+}
+
+pub fn sphere_grid_scene_sdf(p: Vec3) -> f32 {
+    random_sphere_grid(p).max(plane_sdf(p, Vec3::new(0.0, 1.0, 0.0), 0.0))
+}
+
+pub fn fbm_scene_sdf(p: Vec3) -> f32 {
+    sphere_fbm_sdf(p, plane_sdf(p, Vec3::new(0.0, 1.0, 0.0), 0.0)).max(plane_sdf(
+        p,
+        Vec3::new(0.0, 1.0, 0.0),
+        0.0,
+    ))
 }

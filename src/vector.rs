@@ -32,18 +32,40 @@ impl Vec3 {
         self.x * b.x + self.y * b.y + self.z * b.z
     }
 
-    pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
+    pub fn cross(self: &Vec3, other: &Vec3) -> Vec3 {
         Vec3 {
-            x: a.y * b.z - a.z * b.y,
-            y: a.z * b.x - a.x * b.z,
-            z: a.x * b.y - a.y * b.x,
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
         }
+    }
+}
+
+impl From<Vec3> for (f32, f32, f32) {
+    fn from(p: Vec3) -> Self {
+        (p.x, p.y, p.z)
+    }
+}
+
+impl From<Vec3> for (i32, i32, i32) {
+    fn from(p: Vec3) -> Self {
+        (p.x as i32, p.y as i32, p.z as i32)
     }
 }
 
 impl From<(f32, f32, f32)> for Vec3 {
     fn from((x, y, z): (f32, f32, f32)) -> Self {
         Vec3 { x, y, z }
+    }
+}
+
+impl From<(i32, i32, i32)> for Vec3 {
+    fn from((x, y, z): (i32, i32, i32)) -> Self {
+        Vec3 {
+            x: x as f32,
+            y: y as f32,
+            z: z as f32,
+        }
     }
 }
 

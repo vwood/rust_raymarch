@@ -13,6 +13,7 @@ use std::time::SystemTime;
 mod lighting;
 mod raymarch;
 mod scene;
+mod sdf;
 mod vector;
 
 fn process_file(input_filename: &str) -> Result<scene::SceneDescription, Box<dyn Error>> {
@@ -31,7 +32,7 @@ fn march_pixel(x: u32, y: u32, scene: &scene::Scene) -> (u8, u8, u8) {
     let x_pos = ((x as f32) / (width as f32) - 0.5) * 0.8;
     let y_pos = (0.5 - (y as f32) / (height as f32)) * 0.6;
 
-    let dir = vector::Vec3::new(-0.2 - y_pos, x_pos, 1.0).normalize();
+    let dir = (scene.direction + scene.screen_y * y_pos + scene.screen_x * x_pos).normalize();
 
     let (r, g, b) = raymarch::march(&scene, &dir);
 
