@@ -16,6 +16,7 @@ pub struct SceneDescription {
     pub camera_pos: (f32, f32, f32),
     pub look_at: (f32, f32, f32),
     pub lighting: String,
+    pub calc_normal: bool,
 }
 
 impl Default for SceneDescription {
@@ -27,6 +28,7 @@ impl Default for SceneDescription {
             camera_pos: (0.5, 0.5, -2.0),
             look_at: (0.0, 0.0, 0.0),
             lighting: "default".to_string(),
+            calc_normal: true,
         }
     }
 }
@@ -45,6 +47,7 @@ pub struct Scene {
     pub max_dist: f32,
     pub epsilon: f32,
     pub extra_sdf: Option<&'static (dyn Fn(Vec3) -> f32 + Sync)>,
+    pub calc_normal: bool,
 }
 
 impl From<SceneDescription> for Scene {
@@ -87,6 +90,7 @@ impl From<SceneDescription> for Scene {
             max_dist: 255.0,
             epsilon: 0.001,
             extra_sdf: Some(&mandlebulb_scene_sdf_iter),
+            calc_normal: description.calc_normal,
         }
     }
 }

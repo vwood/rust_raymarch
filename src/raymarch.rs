@@ -64,7 +64,11 @@ pub fn march(scene: &scene::Scene, view_dir: &Vec3) -> (f32, f32, f32) {
         None => 1.0,
     };
 
-    let normal = calc_normal_eff(scene.sdf, end_pos);
+    let normal = if scene.calc_normal {
+        calc_normal_eff(scene.sdf, end_pos)
+    } else {
+        Vec3::new(0.0, 1.0, 0.0)
+    };
 
     let light = (normal.x + normal.y + normal.z).abs() / 3.0;
 
